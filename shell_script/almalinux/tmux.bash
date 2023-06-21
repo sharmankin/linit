@@ -23,7 +23,7 @@ make
 sudo make install
 cd - || exit ${LINENO}
 
-tee "${HOME}"/.tmux.conf <<EOF
+sudo tee /etc/tmux.conf <<EOF
 unbind C-b
 set -g prefix C-q
 bind C-q send-prefix
