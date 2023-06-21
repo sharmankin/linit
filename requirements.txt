@@ -1,0 +1,15 @@
+psycopg2
+fastapi
+uvicorn
+aiopg
+pydantic
+simplejson
+inflection
+jmespath
+bs4
+requests-toolbelt
+tzdata;platform_system=='Windows'
+deep_translator
+pillow
+paramiko
+jinja2
