@@ -4,6 +4,13 @@ sudo dnf remove tmux -yq
 sudo dnf install pkgconf automake autoconf {libevent,ncurses}-devel lnav htop -yq
 src_dir="${HOME}"/.local/src/tmux
 
+[[ -d "${src_dir}" ]] && {
+  read -r -p "Source directory exists. Continue? " reply
+  if [[ ${reply,,} != 'y' ]] && [[ ${reply,,} != 'yes' ]]; then
+    exit "${LINENO}"
+  fi
+}
+
 sudo rm -rf "${src_dir}"
 
 git clone https://github.com/tmux/tmux.git "${src_dir}" && {
