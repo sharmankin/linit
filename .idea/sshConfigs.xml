@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="SshConfigs">
+    <configs>
+      <sshConfig host="192.168.56.111" id="65afac22-01ab-4553-9c36-686455ce8d2e" keyPath="C:\Users\karpo\.ssh\id_ecdsa" port="22" customName="UVBoxSRV" nameFormat="CUSTOM" username="me" useOpenSSHConfig="true">
+        <option name="customName" value="UVBoxSRV" />
+      </sshConfig>
+    </configs>
+  </component>
+</project>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="85fd06fb-7032-43db-8b85-536e2196d4aa" name="UVBoxSRV">
+        <fileTransfer rootFolder="/home/me" accessType="SFTP" host="192.168.56.111" port="22" sshConfigId="65afac22-01ab-4553-9c36-686455ce8d2e" sshConfig="UVBoxSRV" keyPair="true">
+          <advancedOptions>
+            <advancedOptions controlEncoding="utf-8" dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>
