@@ -4,8 +4,13 @@ sudo apt install python3-{dev,pip,venv} curl build-essential \
   cmake ninja-build gettext unzip software-properties-common \
   git python3-neovim -y --no-install-recommends
 
-git clone https://github.com/neovim/neovim.git && {
-  cd neovim || {
+src_dir=~/.usr/src/neovim
+
+mkdir -p $src_dir
+
+
+git clone https://github.com/neovim/neovim.git $src_dir && {
+  cd $src_dir || {
     printf 'cannot clone neovim\n'
     exit 1
   }
@@ -15,7 +20,6 @@ git checkout stable -q
 make CMAKE_BUILD_TYPE=Release CMAKE_EXTRA_FLAGS="-DCMAKE_INSTALL_PREFIX=/usr" -j "$(nproc)"
 sudo make install
 cd - || exit 1
-sudo rm -rf neovim
 
 sudo apt install vim-python-jedi vim-lastplace shellcheck -y --no-install-recommends
 
@@ -100,7 +104,7 @@ set hlsearch
 set incsearch
 
 call plug#begin("${vim_conf_dir}/plugged")
-    Plug 'Valloric/YouCompleteMe', { 'dir': '${vim_conf_dir}/plugged/YouCompleteMe', 'do': './install.py  --force-sudo' }
+    Plug 'Valloric/YouCompleteMe', { 'dir': '${vim_conf_dir}/plugged/YouCompleteMe', 'do': './install.py --force-sudo' }
     Plug 'vim-airline/vim-airline'
     Plug 'vim-airline/vim-airline-themes'
     Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all 2>&1 > /dev/null' }

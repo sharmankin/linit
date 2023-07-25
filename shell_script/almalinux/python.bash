@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
-sudo apt install git build-essential libreadline-dev libncursesw5-dev libssl-dev \
-  libsqlite3-dev tk-dev libgdbm-dev libc6-dev libbz2-dev libffi-dev zlib1g-dev \
-  -y --no-install-recommends
+
+sudo dnf install libsqlite3x-devel
+
+sudo dnf install dnf-plugins-core -yq
+sudo dnf builddep python3
 
 git clone -b 3.10 --single-branch https://github.com/python/cpython.git python-src && cd python-src || exit 1
 
@@ -21,8 +23,3 @@ cd - || exit 1
 
 sudo rm -rf python-src
 
-
-sudo update-alternatives --install /usr/bin/python3 python3 "$(which python3.11)" 10
-sudo update-alternatives --install /usr/bin/python3 python3 "$(which python3.10)" 100
-
-sudo update-alternatives --auto python3
