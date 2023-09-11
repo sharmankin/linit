@@ -105,7 +105,7 @@ server {
 EOF
 sudo systemctl reload nginx
 
-sudo certbot certonly -a nginx --agree-tos --staple-ocsp \
+sudo certbot certonly -a nginx --agree-tos --staple-ocsp --must-staple \
   -d mail."${MACHINE_HOST}" \
   --email webmaster@"${MACHINE_HOST}" \
   --noninteractive --nginx-sleep-seconds 5 --no-eff-email

@@ -32,6 +32,8 @@ if [[ ! -f /usr/bin/nvim ]]; then
     sudo update-alternatives --install /usr/bin/$alternative $alternative "${nvim_binary}" 100
     sudo update-alternatives --set $alternative "${nvim_binary}"
   done
+  suod update-alternatives --install /usr/bin/editor editor /usr/bin/nvim 1000
+
 fi
 
 vim_conf_dir="${HOME}/.config/nvim"
@@ -118,7 +120,7 @@ call plug#begin("${vim_conf_dir}/plugged")
     Plug 'eiginn/netrw'
     Plug 'tpope/vim-eunuch'
     Plug 'olimorris/onedarkpro.nvim'
-    Plug 'ethanholz/nvim-lastplace'
+    Plug 'farmergreg/vim-lastplace'
     Plug 'airblade/vim-gitgutter'
 call plug#end()
 
