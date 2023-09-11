@@ -116,7 +116,6 @@ call plug#begin("${vim_conf_dir}/plugged")
     Plug 'vim-airline/vim-airline-themes'
     Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all 2>&1 > /dev/null' }
     Plug 'neomake/neomake'
-    Plug 'dracula/vim', { 'as': 'dracula' }
     Plug 'eiginn/netrw'
     Plug 'tpope/vim-eunuch'
     Plug 'olimorris/onedarkpro.nvim'
