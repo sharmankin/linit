@@ -43,3 +43,4 @@ if __name__ == '__main__':
     import uvicorn
 
     uvicorn.run('__main__:app', reload=True)
+

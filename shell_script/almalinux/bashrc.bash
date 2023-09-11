@@ -58,6 +58,7 @@ if [[ -x /usr/bin/dircolors ]]; then
 fi
 alias l='ls -1F'
 alias ll='ls -lF'
-alias la='ls -lAF'
+alias la='ls -lAF':wq
+
 alias clr='clear && tput cup \$LINES'
 EOF

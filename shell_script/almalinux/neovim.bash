@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 if [[ ! -f /usr/bin/nvim ]]; then
-  sudo dnf remove vim{,-minimal} python3-neovim neovim -yq
+  sudo dnf remove vim{,-minimal} python3-neovim neovim -yq || exit ${LINENO}
 
 
   src_dir="${HOME}"/.local/src/neovim
