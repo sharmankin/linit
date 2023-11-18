@@ -1,46 +1,52 @@
-#!/usr/bin/env bash
+# Neovim
+## Prepare
+```bash
+dnf remove vim{,-minimal} python3-neovim -yq
 
-if [[ ! -f /usr/bin/nvim ]]; then
-  sudo dnf remove vim{,-minimal} python3-neovim neovim -yq || exit ${LINENO}
+dnf install gcc-c++ make cmake ShellCheck git ninja-build -yq --setopt=install_weak_deps=False
 
+dnf install python3-{virtualenv,wheel,pip,devel,jedi} --setopt=install_weak_deps=False -y
 
-  src_dir="${HOME}"/.local/src/neovim
-  mkdir -p "${src_dir}"
+```
+## Install
+```bash
 
-  sudo dnf install gcc-c++ make cmake ShellCheck git ninja-build -yq --setopt=install_weak_deps=False || exit ${LINENO}
+src_dir="/opt/neovim"
+mkdir -p "${src_dir}"
 
-  sudo dnf install python3-{virtualenv,wheel,pip,devel,jedi} --setopt=install_weak_deps=False -y || exit ${LINENO}
-  pip3 install --user pynvim &>/dev/null || exit ${LINENO}
+git clone https://github.com/neovim/neovim.git "${src_dir}" && {
+cd "${src_dir}"
+} || exit ${LINENO}
 
-  git clone https://github.com/neovim/neovim.git "${src_dir}" && {
-    cd "${src_dir}" || exit ${LINENO}
-  } || exit ${LINENO}
+git checkout stable -q
 
-  git checkout stable -q || exit ${LINENO}
+make CMAKE_BUILD_TYPE=Release CMAKE_EXTRA_FLAGS="-DCMAKE_INSTALL_PREFIX=/usr" -j "$(nproc)" || {
+printf '\e[1;31m%s\e[0m\n' "Error on compile"
+exit ${LINENO}
+}
 
-  make CMAKE_BUILD_TYPE=Release CMAKE_EXTRA_FLAGS="-DCMAKE_INSTALL_PREFIX=/usr" -j "$(nproc)" || {
-    printf '\e[1;31m%s\e[0m\n' "Error on compile"
-    exit ${LINENO}
-  } || exit ${LINENO}
+make install
+cd -
 
-  sudo make install
-  cd - || exit ${LINENO}
+nvim_binary="$(which nvim)"
 
-  nvim_binary="$(which nvim)"
-
-  for alternative in vi vim; do
-    sudo update-alternatives --install /usr/bin/$alternative $alternative "${nvim_binary}" 100
-    sudo update-alternatives --set $alternative "${nvim_binary}"
-  done
-  sudo update-alternatives --install /usr/bin/editor editor /usr/bin/nvim 1000
-
-fi
-
+for alternative in vi vim; do
+  update-alternatives --install /usr/bin/$alternative $alternative "${nvim_binary}" 100
+  update-alternatives --set $alternative "${nvim_binary}"
+done
+update-alternatives --install /usr/bin/editor editor /usr/bin/nvim 1000
+```
+## Config
+```bash
 vim_conf_dir="${HOME}/.config/nvim"
 
 mkdir -p "${vim_conf_dir}"
 
 vimrc="${vim_conf_dir}/init.vim"
+
+python_bin=$(which python3)
+
+${python_bin} -m pip install --user pynvim --upgrade --no-cache-dir 2>/dev/null
 
 curl -sfL https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim \
   -o "${vim_conf_dir}"/autoload/plug.vim --create-dirs
@@ -139,6 +145,7 @@ call plug#end()
 "let g:lastplace_ignore = "gitcommit,gitrebase,svn,hgcommit"
 "let g:lastplace_ignore_buftype = "quickfix,nofile,help"
 "let g:lastplace_open_folds = 0
+let g:python3_host_prog = '${python_bin}'
 
 nmap <F2> :SudoWrite<CR>
 vmap <F2> <Esc> :SudoWrite<CR>
@@ -168,3 +175,4 @@ EOF
 nvim +PlugInstall +qall
 
 sed -ri '/neomake|airline|netrw|colorscheme|lastplace|gitgutter/s/^"//' "${vimrc}"
+```

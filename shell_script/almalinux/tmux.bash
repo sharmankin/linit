@@ -2,7 +2,7 @@
 
 sudo dnf remove tmux -yq
 
-sudo dnf install pkgconf automake autoconf {libevent,ncurses}-devel lnav htop -yq
+sudo dnf install pkgconf automake autoconf {libevent,ncurses}-devel -yq
 src_dir="${HOME}"/.local/src/tmux
 
 [[ -d "${src_dir}" ]] && {
@@ -62,12 +62,11 @@ bind -n C-S-Delete kill-server
 bind Tab previous-window
 
 bind -n M-Insert new-window
+bind -n M-l send 'clear && tput cup \$LINES' Enter
 
-bind r source-file ~/.tmux.conf \; display "config reloaded"
-bind M-1 source-file ~/.config/tmux/4pane.conf \; display "readed 4pane config"
+if-shell "[ -f \$HOME/.config/tmux/user.conf ]" 'set-hook -g after-new-session "source-file \$HOME/.config/tmux/user.conf"'
 
 bind -n C-M-Insert new-window
-
 set -g mouse on
 set -s set-clipboard on
 

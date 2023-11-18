@@ -25,6 +25,10 @@ Restart=on-failure
 RestartSec=5s
 EOF
 
+sudo systemctl daemon-reload
+
+sudo systemctl restart dovecot postfix
+
 tar -czPf ./mailserver_conf_backup_"$(date +'%s')".tar.gz /etc/{postfix,dovecot}
 
 sudo tee /etc/postfix/main.cf <<EOF
@@ -86,8 +90,11 @@ sudo dnf install https://rpms.remirepo.net/enterprise/remi-release-9.rpm -yq
 
 sudo dnf upgrade --refresh -yq
 
-sudo dnf module disable php:8.1
-sudo dnf module enable php:remi-8.1
+sudo dnf module disable php:8.1 -y
+sudo dnf module enable php:remi-8.1 -y
+
+dnf install -y php-fpm php-imap php-mbstring php-gd php-opcache php-json php-curl \
+  php-zip php-xml php-bz2 php-intl php-gmp php-pgsql
 
 
 sudo tee /etc/nginx/conf.d/mail."${MACHINE_HOST}".conf <<EOF
