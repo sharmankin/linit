@@ -4,27 +4,57 @@
 sudo tee /etc/sudoers.d/10-"${USER}" <<EOF
 ${USER} ALL=(ALL:ALL) NOPASSWD:ALL
 EOF
+```
+
+```bash
+aexit() {
+    printf '\e[1;31mAbnormal script exit on line %s\e[0m\n' $1 && exit $1
+}
 
 sudo dnf config-manager --set-enabled crb
-sudo dnf install epel-{next-,}release elrepo-release -yq
+
+sudo dnf install epel-release -y || aexit ${LINENO}
+sudo dnf update -y
+
+sudo dnf install epel-next-release elrepo-release -y  || aexit ${LINENO}
 sudo dnf update -y --refresh
 
-sudo dnf groupinstall development -yq
-sudo dnf install python3-{virtualenv,wheel,pip,devel,jedi,virtualenv-api} ninja-build --setopt=install_weak_deps=False -yq
-sudo dnf install python3.11-{wheel,pip,devel,setuptools} -yq --setopt=install_weak_deps=False
+sudo dnf groupinstall development -y || aexit ${LINENO}
 
-sudo dnf install git wget curl bind-utils mc ncdu fuse{,3}-devel timeshift -yq --setopt=install_weak_deps=False
+sudo dnf install bind-utils dnf-utils bash-completion \
+  gcc-c++ make cmake ninja-build automake autoconf \
+  pkgconf-pkg-config gcc bison pkg-config -y
+
+sudo dnf install python3-{virtualenv,wheel,pip,devel,jedi,virtualenv-api} --setopt=install_weak_deps=False -y
+sudo dnf install python3.11-{wheel,pip,devel,setuptools} -y --setopt=install_weak_deps=False  || aexit ${LINENO}
+
+sudo dnf install mc fuse{,3}-devel timeshift ncdu -y \
+  --setopt=install_weak_deps=False || aexit ${LINENO}
 
 git config --global user.name "${USER}"
 git config --global user.email "${USER}"@"${HOSTNAME}"
 
 curl -sfL https://github.com/sharmankin.keys -o ~/.ssh/authorized_keys --create-dirs
+
+git clone https://github.com/junegunn/fzf.git "${HOME}/.fzf" -q && \
+  "${HOME}/.fzf"/install --all &>/dev/null
 ```
 
 # Home
 ```bash
 mkdir -p "${HOME}"/.bashrc.d
 mkdir -p "${HOME}"/.local/src
+
+mkdir -p "${HOME}"/.bashrc.d
+
+fzf_dir="${HOME}/.fzf"
+if [[ ! -d "${fzf_dir}" ]]; then
+git clone https://github.com/junegunn/fzf.git "${HOME}/.fzf" -q && \
+  "${HOME}/.fzf"/install --all &>/dev/null
+fi
+tee "${HOME}/.bashrc.d/03-fzf" &>/dev/null <<EOF
+  source ${HOME}/.fzf.bash
+EOF
 
 tee "${HOME}/.bashrc" &>/dev/null <<EOF
 # .bashrc

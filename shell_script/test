@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+while read -r repo; do
+  [[ pgdg"${version}" = "$repo" ]] && dnf config-manager --disable "${repo}"
+done < <(dnf repolist pgdg* --enabled | grep -Eo 'pgdg[0-9]+')

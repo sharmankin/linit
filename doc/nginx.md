@@ -3,7 +3,7 @@
 
 ### Add repo
 ```bash
-sudo dnf install yum-utils -yq
+# sudo dnf install yum-utils -yq
 
 sudo tee /etc/yum.repos.d/nginx.repo 1>/dev/null <<eof
 [nginx-stable]

@@ -1,16 +1,15 @@
 # Neovim
 ## Prepare
 ```bash
-dnf remove vim{,-minimal} python3-neovim -yq
+sudo dnf remove vim{,-minimal} python3-neovim -yq
 
-dnf install gcc-c++ make cmake ShellCheck git ninja-build -yq --setopt=install_weak_deps=False
+sudo dnf install gcc-c++ make cmake ShellCheck git ninja-build -yq --setopt=install_weak_deps=False
 
-dnf install python3-{virtualenv,wheel,pip,devel,jedi} --setopt=install_weak_deps=False -y
+sudo dnf install python3-{virtualenv,wheel,pip,devel,jedi} --setopt=install_weak_deps=False -y
 
 ```
 ## Install
 ```bash
-
 src_dir="/opt/neovim"
 mkdir -p "${src_dir}"
 
@@ -25,7 +24,7 @@ printf '\e[1;31m%s\e[0m\n' "Error on compile"
 exit ${LINENO}
 }
 
-make install
+sudo make install
 cd -
 
 nvim_binary="$(which nvim)"
@@ -38,13 +37,15 @@ update-alternatives --install /usr/bin/editor editor /usr/bin/nvim 1000
 ```
 ## Config
 ```bash
+PYTHON_VERSION='3.11'
+
 vim_conf_dir="${HOME}/.config/nvim"
 
 mkdir -p "${vim_conf_dir}"
 
 vimrc="${vim_conf_dir}/init.vim"
 
-python_bin=$(which python3)
+python_bin=$(which python${PYTHON_VERSION}) || exit 222
 
 ${python_bin} -m pip install --user pynvim --upgrade --no-cache-dir 2>/dev/null
 
@@ -117,7 +118,7 @@ set hlsearch
 set incsearch
 
 call plug#begin("${vim_conf_dir}/plugged")
-    Plug 'Valloric/YouCompleteMe', { 'dir': '${vim_conf_dir}/plugged/YouCompleteMe', 'do': './install.py --force-sudo' }
+    Plug 'Valloric/YouCompleteMe', { 'dir': '${vim_conf_dir}/plugged/YouCompleteMe', 'do': '${python_bin} install.py --force-sudo' }
     Plug 'vim-airline/vim-airline'
     Plug 'vim-airline/vim-airline-themes'
     Plug 'junegunn/fzf', { 'dir': '~/.fzf', 'do': './install --all 2>&1 > /dev/null' }
