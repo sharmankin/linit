@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 apt install make cmake automake autoconf pkg-config \
-  pkgconf {libevent,ncurses}-dev nasm libtool
+  pkgconf {libevent,ncurses}-dev nasm libtool bison
 
 
 git clone https://github.com/tmux/tmux.git && cd tmux || exit 1

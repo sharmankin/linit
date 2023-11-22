@@ -1,10 +1,24 @@
 # Tmux
 ## Install
 ```bash
-dnf remove tmux -yq
-dnf install pkgconf-pkg-config autoconf automake {libevent,ncurses}-devel gcc make bison pkg-config -y
-
 src_dir="/opt/tmux"
+
+rm -rf "${src_dir}"
+
+case "$(grep -RPho '(?<=\bNAME=").*?(?=")' -R /etc/*-release)" in
+  "Ubuntu")
+        apt purge tmux --autoremove -y
+        apt install libncursesw5-dev {autotools,libhwloc,libcap,libevent}-dev autoconf automake build-essential nasm libtool bison make cmake pkg-config  -y
+        ;;
+  "Rocky Linux")
+    dnf remove tmux -yq
+    dnf install pkgconf-pkg-config autoconf automake {libevent,ncurses}-devel gcc make bison pkg-config -y
+      ;;
+  *)
+    exit
+    ;;
+esac
+
 git clone https://github.com/tmux/tmux.git "${src_dir}"
 cd "${src_dir}"
 ./autogen.sh
@@ -71,6 +85,7 @@ set -g pane-border-format "#P: #{pane_current_command}"
 
 bind-key F1 set-option status
 bind-key m set-option mouse \; display-message "Mouse is #{?mouse,ON,OFF}"
+
 eof
 ```
 ## Config hints
@@ -143,6 +158,8 @@ Host com
 #### User config file
 ```bash
 user_conf_dir="$HOME/.config/tmux"
+
+rm -rf "${user_conf_dir}"
 mkdir -p ${user_conf_dir}
 
 tee ${user_conf_dir}/.tmux.conf 1>/dev/null <<eof
@@ -155,21 +172,68 @@ run-shell -C "source-file #{TMUX_CONF_DIR}/tmux_fn-create-window.conf"
 # -- finally --
 select-window -t main
 bind-key -n M-r run-shell -C "source-file #{TMUX_CONF_DIR}/tmux_fn-create-window.conf"
+bind-key -n M-e run-shell -C "split-window -v -Z 'vim #{TMUX_CONF_DIR}/tmux-#{window_name}.conf'
+bind-key n split-window -v winn
 eof
 
 tee ${user_conf_dir}/tmux_fn-create-window.conf <<eof
 run-shell -C 'respawn-window -k -t #{window_name}'
-if-shell '[[ -f #{TMUX_CONF_DIR}/tmux-#{window_name}.conf ]]' \\
+if-shell '[ -f #{TMUX_CONF_DIR}/tmux-#{window_name}.conf ]' \\
     'run-shell -C "source-file #{TMUX_CONF_DIR}/tmux-#{window_name}.conf"' \\
     'display-message -d 5000 "#{TMUX_CONF_DIR}/tmux-#{window_name}.conf not found"'
 eof
+
+mkdir -p "${HOME}/.local/bin"
+
+tee "${HOME}/.local/bin/winn" <<eof
+#!/usr/bin/env bash
+
+user_conf_dir="${HOME}/.config/tmux"
+
+if [[ -n "\${1}" ]]; then
+  window_name=\$1
+else
+  read -r -p 'Window name: ' window_name
+  [[ -n "\${window_name}" ]] && config_file="\${user_conf_dir}/tmux-\${window_name}.conf" || {
+  echo "Name can't be empty"
+  exit "\${LINENO}"
+}
+fi
+config_file="\${user_conf_dir}/tmux-\${window_name}.conf"
+
+if [[ -f \${config_file} ]]; then
+printf 'Config file %s exists.\\n Erase it? [y/N]: ' \${config_file}
+read -r -n 1 reply
+[[ \${reply,,} = 'y' ]] && [[ "\${window_name}" != 'main' ]] && touch \${config_file}
+else
+touch \${config_file}
+fi
+
+if [[ -n "\$window_name" ]] && [[ "\${window_name}" != 'main' ]] && \\
+[[ -z \$(grep -n "\\{\${window_name}\\}" "\${user_conf_dir}/.tmux.conf") ]]; then
+
+sed "/-- finally --/i\\
+# -- \\{\${window_name}\\} --\\n\\
+new-window -n \${window_name}\\n\\
+run-shell -C 'source-file \#{TMUX_CONF_DIR}/tmux_fn-create-window.conf'\\n\\
+" -i .config/tmux/.tmux.conf
+
+else
+[[ -z "\$window_name" ]] &&  echo -e "\\nEmpty name"
+fi
+eof
+chmod +x "${HOME}/.local/bin/winn"
 ```
 #### Register window in user config
 ```bash
 user_conf_dir="$HOME/.config/tmux"
 read -r -p 'Window name: ' window_name
 
-config_file="${user_conf_dir}/tmux-${window_name}.conf"
+[[ -n "${window_name}" ]] && config_file="${user_conf_dir}/tmux-${window_name}.conf" || {
+  echo "Name can't be empty"
+  tmux display -d 5000 "Name can't be empty"
+  exit "${LINENO}"
+}
 
 if [[ -f ${config_file} ]]; then 
   printf 'Config file %s exists.\n Erase it? [y/N]: '
@@ -241,7 +305,7 @@ if grep -qPo '\bpostgres\b' /etc/passwd ; then
   pg_log_dir="$(sudo -iu postgres psql -AXqtc \
   "SELECT format('%s/%s', current_setting('data_directory'), current_setting('log_directory'));" \
   )"
-"
+
   pg_part="$(cat <<eof
 # -- pg part --
 new-window -n postgres -S sudo -iu postgres

@@ -1,17 +1,31 @@
 # Neovim
 ## Prepare
 ```bash
-sudo dnf remove vim{,-minimal} python3-neovim -yq
 
-sudo dnf install gcc-c++ make cmake ShellCheck git ninja-build -yq --setopt=install_weak_deps=False
-
-sudo dnf install python3-{virtualenv,wheel,pip,devel,jedi} --setopt=install_weak_deps=False -y
+RELEASE="$(grep -RPho '(?<=\bNAME=").*?(?=")' -R /etc/*-release)"
+case ${RELEASE} in
+  "Ubuntu")
+        sudo apt purge vim vim-nox vim-tiny --autoremove -y
+        sudo apt install python3-{dev,pip,venv} curl build-essential \
+          cmake ninja-build gettext unzip software-properties-common \
+          git -y --no-install-recommends
+        ;;
+  "Rocky Linux")
+        sudo dnf remove vim{,-minimal} python3-neovim -yq
+        sudo dnf install gcc-c++ make cmake ShellCheck git ninja-build -yq --setopt=install_weak_deps=False
+        sudo dnf install python3-{virtualenv,wheel,pip,devel,jedi} --setopt=install_weak_deps=False -y
+      ;;
+esac
 
 ```
 ## Install
 ```bash
 src_dir="/opt/neovim"
+
+rm -rf "${src_dir}"
 mkdir -p "${src_dir}"
+
+rm -f $(which nvim)
 
 git clone https://github.com/neovim/neovim.git "${src_dir}" && {
 cd "${src_dir}"
@@ -41,6 +55,7 @@ PYTHON_VERSION='3.11'
 
 vim_conf_dir="${HOME}/.config/nvim"
 
+rm -rf "${vim_conf_dir}"
 mkdir -p "${vim_conf_dir}"
 
 vimrc="${vim_conf_dir}/init.vim"

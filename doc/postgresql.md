@@ -15,6 +15,11 @@ done < <(dnf repolist pgdg* --enabled | grep -Eo 'pgdg[0-9]+')
 #  sed -E "$(( ${a_repo[0]} + 3 ))s/0/1/" -i /etc/yum.repos.d/pgdg-redhat-all.repo
 #done 3< <(grep -Pno "(?<=\[)pgdg(?=\d+)(?"'!'"${version}).*?(?=\])" /etc/yum.repos.d/pgdg-redhat-all.repo)
 
+while read -r -u 3 repo; do
+  IFS=: read -a a_repo <<<$repo
+  sed -E "$(( ${a_repo[0]} + 3 ))s/1/0/" -i /etc/yum.repos.d/pgdg-redhat-all.repo
+done 3< <(grep -Pno "(?<=\[)pgdg(?=\d+)(?"'!'"${version}).*?(?=\])" /etc/yum.repos.d/pgdg-redhat-all.repo)
+
 dnf install -qy postgresql"${version}"-server postgresql"${version}"-contrib
 
 dnf install -yq mysql_fdw_"${version}" postgresql"${version}"-plpython3 pg_cron_"${version}" libpq5-devel perl-DBI perl-DBD-Pg

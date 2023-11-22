@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+
 sudo apt install {libncurses,libreadline,libsqlite3,libcurlpp,libpcre2,libghc-curl}-dev -y
 src_dir="/opt/lnav"
 git clone https://github.com/tstack/lnav.git "${src_dir}"

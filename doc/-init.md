@@ -35,16 +35,17 @@ git config --global user.name "${USER}"
 git config --global user.email "${USER}"@"${HOSTNAME}"
 
 curl -sfL https://github.com/sharmankin.keys -o ~/.ssh/authorized_keys --create-dirs
-
-git clone https://github.com/junegunn/fzf.git "${HOME}/.fzf" -q && \
-  "${HOME}/.fzf"/install --all &>/dev/null
+if [[ ! -d ~/.fzf ]]; then
+    git clone https://github.com/junegunn/fzf.git "${HOME}/.fzf" -q && \
+      "${HOME}/.fzf"/install --all &>/dev/null
+fi
 ```
 
 # Home
 ## .bashrc
 ```bash
 mkdir -p "${HOME}"/.bashrc.d
-mkdir -p "${HOME}"/.local/src
+mkdir -p "${HOME}"/.local/{src,bin}
 
 mkdir -p "${HOME}"/.bashrc.d
 
