@@ -1,3 +1,4 @@
+# Tmux
 ## Install
 ```bash
 dnf remove tmux -yq
@@ -22,6 +23,7 @@ set -g prefix M-q
 bind M-q send-prefix
 
 set -g default-terminal "tmux-256color"
+set-option -g display-time 4000
 
 bind -n S-Left select-pane -L
 bind -n S-Right select-pane -R
@@ -46,15 +48,16 @@ bind -n C-M-z resize-pane -Z
 bind -n M-Delete kill-window
 
 bind -n C-S-Delete kill-server
+bind -n S-Delete detach
 
 bind -n C-S-Left previous-window
 bind -n C-S-Right next-window
 
 bind Tab choose-window
 bind Insert new-window
-bind Delete detach
 
 bind -n M-l send 'clear && tput cud \$LINES' Enter
+bind -n M-h show-prompt-history
 
 user_conf="\${HOME}/.config/tmux/.tmux.conf"
 if-shell "[ -f \${user_conf} ]" "set-hook -g after-new-session 'source-file \${user_conf}'"
@@ -126,7 +129,79 @@ fi
 ```
 *You would want to do this after setting variables like `TERM` and `LC_*` (if you set these) that affect the terminal capabilities and locale.\
 Remember that ssh needs a pseudo-tty to run tmux, so you must connect with ssh -t (or use `RequestTTY force` in `~/.ssh/config` for the connection).*
+```ssh
+Host com
+    HostName karpovan.com
+    User me
+    RequestTTY Force
+    RemoteCommand tmux new -A -s me-tmux-session 2>/dev/null
+```
+
 ## User config
+
+### User Config #
+#### User config file
+```bash
+user_conf_dir="$HOME/.config/tmux"
+mkdir -p ${user_conf_dir}
+
+tee ${user_conf_dir}/.tmux.conf 1>/dev/null <<eof
+clr="clear && tput cud \\\$LINES\n"
+TMUX_CONF_DIR=${user_conf_dir}
+set-environment TMUX_CONF_DIR \${TMUX_CONF_DIR}
+rename-window main
+run-shell -C "source-file #{TMUX_CONF_DIR}/tmux_fn-create-window.conf"
+
+# -- finally --
+select-window -t main
+bind-key -n M-r run-shell -C "source-file #{TMUX_CONF_DIR}/tmux_fn-create-window.conf"
+eof
+
+tee ${user_conf_dir}/tmux_fn-create-window.conf <<eof
+run-shell -C 'respawn-window -k -t #{window_name}'
+if-shell '[[ -f #{TMUX_CONF_DIR}/tmux-#{window_name}.conf ]]' \\
+    'run-shell -C "source-file #{TMUX_CONF_DIR}/tmux-#{window_name}.conf"' \\
+    'display-message -d 5000 "#{TMUX_CONF_DIR}/tmux-#{window_name}.conf not found"'
+eof
+```
+#### Register window in user config
+```bash
+user_conf_dir="$HOME/.config/tmux"
+read -r -p 'Window name: ' window_name
+
+config_file="${user_conf_dir}/tmux-${window_name}.conf"
+
+if [[ -f ${config_file} ]]; then 
+  printf 'Config file %s exists.\n Erase it? [y/N]: '
+  read -r -n 1 reply
+  [[ ${reply,,} = 'y' ]] && [[ "${window_name}" != 'main' ]] && touch ${config_file}
+else
+  touch ${config_file}
+fi
+
+if [[ -n "$window_name" ]] && [[ "${window_name}" != 'main' ]] && \
+  [[ -z $(grep -n "\{${window_name}\}" "${user_conf_dir}/.tmux.conf") ]]; then
+    
+sed "/-- finally --/i\
+# -- \{${window_name}\} --\n\
+new-window -n ${window_name}\n\
+run-shell -C 'source-file \#{TMUX_CONF_DIR}/tmux_fn-create-window.conf'\n\
+" -i .config/tmux/.tmux.conf
+
+else
+  echo "Empty name"
+fi
+```
+#### Main window config File
+```text
+split-window -h 'sudo -i htop'
+split-window -v -l 30% 'sudo -i lnav'
+select-pane -t 0
+send-keys $clr
+split-window -v -l 30% 'sudo -i'
+send-keys $clr
+```
+## Old config method
 ### Config #1
 ```bash
 user_conf_dir="$HOME/.config/tmux"
@@ -166,7 +241,7 @@ if grep -qPo '\bpostgres\b' /etc/passwd ; then
   pg_log_dir="$(sudo -iu postgres psql -AXqtc \
   "SELECT format('%s/%s', current_setting('data_directory'), current_setting('log_directory'));" \
   )"
-  
+"
   pg_part="$(cat <<eof
 # -- pg part --
 new-window -n postgres -S sudo -iu postgres

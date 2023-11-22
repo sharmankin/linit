@@ -1,4 +1,5 @@
 # Postgresql
+## Install
 ```bash
 version=16
 
@@ -8,6 +9,11 @@ dnf -qy module disable postgresql
 while read -r repo; do
   [[ pgdg"${version}" != "$repo" ]] && dnf config-manager --disable "${repo}"
 done < <(dnf repolist pgdg* --enabled | grep -Eo 'pgdg[0-9]+')
+
+#while read -r -u 3 repo; do
+#  IFS=: read -a a_repo <<<$repo
+#  sed -E "$(( ${a_repo[0]} + 3 ))s/0/1/" -i /etc/yum.repos.d/pgdg-redhat-all.repo
+#done 3< <(grep -Pno "(?<=\[)pgdg(?=\d+)(?"'!'"${version}).*?(?=\])" /etc/yum.repos.d/pgdg-redhat-all.repo)
 
 dnf install -qy postgresql"${version}"-server postgresql"${version}"-contrib
 
@@ -19,8 +25,32 @@ systemctl status postgresql-"${version}"
 
 firewall-cmd --zone=public --permanent --add-service=postgresql
 firewall-cmd --reload
+```
+## Disable repo Opt 1
+```bash
+version=16
 
-sudo -iu postgres tee ~/.psqlrc <<eof
+while read -r -u 3 repo; do
+  IFS=: read -a a_repo <<<$repo
+  sed -E "$(( ${a_repo[0]} + 3 ))s/1/0/" -i /etc/yum.repos.d/pgdg-redhat-all.repo
+done 3< <(grep -Pno "(?<=\[)pgdg(?=\d+)(?"'!'"${version}).*?(?=\])" /etc/yum.repos.d/pgdg-redhat-all.repo)
+```
+## Disable repo Opt 2
+```bash
+version=16
+
+while read -r repo; do
+  [[ pgdg"${version}" != "$repo" ]] && dnf config-manager --disable "${repo}"
+done < <(dnf repolist pgdg* --enabled | grep -Eo 'pgdg[0-9]+')
+```
+
+
+## PG Prompt
+```bash
+
+confdir=$(cat /etc/passwd | grep -E '^postgres' | cut -d : -f 6)
+
+sudo -iu postgres tee "${confdir}"/.psqlrc <<eof
 \set QUIET 1
 
 \set PROMPT1 '%M:%[%033[1;31m%]%>%[%033[0m%] %n@%/%R%#%x '
@@ -28,14 +58,14 @@ sudo -iu postgres tee ~/.psqlrc <<eof
 \set PROMPT2 '%M %n@%/%R %# '
 
 \pset null '[null]'
+\pset format wrapped
+\pset linestyle unicode
 
 \set COMP_KEYWORD_CASE upper
 
 \timing
 
 \set HISTSIZE 2000
-
-\x auto
 
 \set VERBOSITY verbose
 
@@ -50,7 +80,7 @@ sudo -iu postgres tee ~/.psqlrc <<eof
 eof
 
 ```
-## Color prompt
+## postgres user color prompt
 ```bash
 color=(reset red green brown blue purple cyan "l-gray")
 color_idx=('0' '1;31' '1;32' '1;33' '1;34' '1;35' '1;36' '1;37')

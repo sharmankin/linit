@@ -41,6 +41,7 @@ git clone https://github.com/junegunn/fzf.git "${HOME}/.fzf" -q && \
 ```
 
 # Home
+## .bashrc
 ```bash
 mkdir -p "${HOME}"/.bashrc.d
 mkdir -p "${HOME}"/.local/src
